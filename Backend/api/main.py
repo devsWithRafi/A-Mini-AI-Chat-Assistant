@@ -14,8 +14,10 @@ Ai_model = "meta-llama/llama-4-scout-17b-16e-instruct" # Your Ai Model
 client = Groq(api_key=api_key)
 
 def prompts() -> str:
-    with open('Prompt.txt', 'r') as f:
+    filepath = os.path.join(os.path.dirname(__file__), "Prompt.txt")
+    with open(filepath, 'r') as f:
         return f.read()
+    
 PROMPT = prompts()
 
 def bot_response(user_message, model, prompts) -> str:
@@ -43,7 +45,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[frontend_url, frontend_url],
+    allow_origins=[frontend_url],
     allow_headers=["*"],
     allow_methods=["*"],
     allow_credentials=True
