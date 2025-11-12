@@ -2,21 +2,22 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from groq import Groq
 from pydantic import BaseModel
-from dotenv import load_dotenv
+from mangum import Mangum
 import os
 
-load_dotenv()
-
 api_key = os.getenv("GROQ_API_KEY") # Your Qroq API keys
-frontend_url = os.getenv("FRONTEND_URL") # Your Frontend/client-side web Url
+frontend_url = os.getenv("FRONTEND_URL", "*") # Your Frontend/client-side web Url
 Ai_model = "meta-llama/llama-4-scout-17b-16e-instruct" # Your Ai Model
 
 client = Groq(api_key=api_key)
 
 def prompts() -> str:
-    filepath = os.path.join(os.path.dirname(__file__), "Prompt.txt")
-    with open(filepath, 'r') as f:
-        return f.read()
+    try:
+        filepath = os.path.join(os.path.dirname(__file__), "Prompt.txt")
+        with open(filepath, 'r', encoding='utf-8') as f:
+            return f.read()
+    except FileNotFoundError:
+        return "You are a helpful AI assistant."
     
 PROMPT = prompts()
 
@@ -25,12 +26,12 @@ def bot_response(user_message, model, prompts) -> str:
         model=model,
         messages=[
             {
-                "role": "user", # user means -> for chatting
-                "content": user_message
-            },
-            {
                 "role": "system", # system maens -> your models brain
                 "content": prompts # set the custom brain
+            },
+            {
+                "role": "user", # user means -> for chatting
+                "content": user_message
             }
         ],
         temperature=1,
@@ -69,3 +70,5 @@ def getMessage(msg: Message):
             prompts=PROMPT
         )
     }
+
+handler = Mangum(app)
